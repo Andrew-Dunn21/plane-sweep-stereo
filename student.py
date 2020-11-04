@@ -3,7 +3,6 @@ from math import floor
 import numpy as np
 import cv2
 from scipy.sparse import csr_matrix
-import util_sweep
 
 def project_impl(K, Rt, points):
     """
