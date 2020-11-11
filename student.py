@@ -14,7 +14,27 @@ def project_impl(K, Rt, points):
     Output:
         projections -- height x width x 2 array of 2D projections
     """
-    raise NotImplementedError()
+    
+    #I'm trying to think of a way to vectorize this for efficiency
+    #LMK if you have any ideas
+    h,w,_ = points.shape
+    #The output array
+    outs = np.zeros((h,w,2))
+    R = Rt[:,:3]
+    c = Rt[:,3]
+    for i in range(h):
+        for j in range(w):
+            x,y,z = np.dot(K, np.dot(R,points[i,j,:])+c)
+            if z != 0:
+                x = x/z
+                y = y/z
+            else:
+                raise Exception('That maybe should not happen?')
+            
+            #Store the points
+            outs[i,j,:] = x,y
+    return outs
+
 
 def unproject_corners_impl(K, width, height, depth, Rt):
     """
