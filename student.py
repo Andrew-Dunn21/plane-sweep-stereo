@@ -17,22 +17,18 @@ def project_impl(K, Rt, points):
     
     #I'm trying to think of a way to vectorize this for efficiency
     #LMK if you have any ideas
-    h,w,_ = points.shape
+    h,w = points.shape[:2]
     #The output array
     outs = np.zeros((h,w,2))
-    R = Rt[:,:3]
-    c = Rt[:,3]
+    #Loop the points
     for i in range(h):
         for j in range(w):
-            x,y,z = np.dot(K, np.dot(R,points[i,j,:])+c)
-            if z != 0:
-                x = x/z
-                y = y/z
-            else:
-                raise Exception('That maybe should not happen?')
-            
-            #Store the points
-            outs[i,j,:] = x,y
+            x,y,z = points[i,j]
+            u,v,t = np.dot(K,np.dot(Rt,np.array([[x],[y],[z],[1]])))
+            if t != 0:
+                u = u/t
+                v = v/t
+            outs[i,j,:] = (u,v)
     return outs
 
 
@@ -49,7 +45,66 @@ def unproject_corners_impl(K, width, height, depth, Rt):
     Output:
         points -- 2 x 2 x 3 array of 3D positions of the image corners
     """
-    raise NotImplementedError()
+
+    #Things we need to deproject:
+    Ki = np.linalg.inv(K)
+    Ri = np.eye(4)
+    Ri[:3,:3] = Rt[:,:3]
+    Ri = np.transpose(Ri)
+    Ri2 = np.linalg.inv(Ri)
+    
+    #Doing this carefully because prior errors
+    Ti = np.eye(4)
+    T = np.ones((4,1))
+    T[:3,0] = Rt[:,3]
+    T = np.dot(Ri,T)
+    Ti[:,3] = T[:,0]
+    Tinv = np.linalg.inv(Ti)
+    P = np.zeros((4,3))
+    P[:3,:] = np.eye(3)
+    P[3,2] = 1
+    
+    #Designate the corners as np arrays
+    bL = np.array([
+        [0],
+        [0],
+        [1]],dtype=np.float32)
+    bR = np.array([
+        [width-1],
+        [0],
+        [1]],dtype=np.float32)
+    tL = np.array([
+        [0],
+        [height-1],
+        [1]],dtype=np.float32)
+    tR = np.array([
+        [width-1],
+        [height-1],
+        [1]],dtype=np.float32)
+    
+    #Deproject factoring in depth
+    bL = np.dot(Tinv, np.dot(Ri, np.dot(P, depth*np.dot(Ki,bL))))
+    bR = np.dot(Tinv, np.dot(Ri, np.dot(P, depth*np.dot(Ki,bR))))
+    tL = np.dot(Tinv, np.dot(Ri, np.dot(P, depth*np.dot(Ki,tL))))
+    tR = np.dot(Tinv, np.dot(Ri, np.dot(P, depth*np.dot(Ki,tR))))
+    
+    #Norm if necessary, we should never get 0, though
+    if bL[3,0] != 1:
+        w = bL[3,0]
+        bL /= w
+        bR /= w
+        tL /= w
+        tR /= w
+    
+    #Put the corners into an output array
+    points = np.zeros((2,2,3),dtype=np.float32)
+    points[0,0,:] = bL[:3,0]
+    points[0,1,:] = bR[:3,0]
+    points[1,0,:] = tL[:3,0]
+    points[1,1,:] = tR[:3,0]
+    
+    return points
+
 
 def preprocess_ncc_impl(image, ncc_size):
     """
