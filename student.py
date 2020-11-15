@@ -192,16 +192,11 @@ def preprocess_ncc_impl(image, ncc_size):
     # reshape patch into vector
     new_norm = normalized[:, :].reshape(h, w, -1)
 
-    # compute vector norm and divide each patch by it
-    v_norm = np.linalg.norm(new_norm[:, :, :])
-    if v_norm < 1e-6:
-        new_norm[:, :, :] = 0
-    else:
-        # not entirely sure why dividing by ncc_size, but it works
-        new_norm[:, :, :] /= (v_norm / ncc_size)
+    # compute vector norm and divide each patch by it if norm is non-zero
+    v_norm = np.linalg.norm(new_norm, axis=2)
+    new_norm[v_norm > 0] = new_norm[v_norm > 0] / v_norm[v_norm > 0, np.newaxis]
 
     return new_norm
-
 
 
 def compute_ncc_impl(image1, image2):
@@ -216,4 +211,5 @@ def compute_ncc_impl(image1, image2):
         ncc -- height x width normalized cross correlation between image1 and
                image2.
     """
+
     raise NotImplementedError()

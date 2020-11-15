@@ -12,6 +12,9 @@ cd ../data
 #wget --no-check-certificate http://vision.middlebury.edu/stereo/data/scenes2014/zip/Backpack-perfect.zip
 #wget --no-check-certificate http://vision.middlebury.edu/stereo/data/scenes2014/zip/Bicycle1-perfect.zip
 #wget --no-check-certificate http://vision.middlebury.edu/stereo/data/scenes2014/zip/Cable-perfect.zip
+
+
+
 #wget --no-check-certificate http://vision.middlebury.edu/stereo/data/scenes2014/zip/Classroom1-perfect.zip
 #wget --no-check-certificate http://vision.middlebury.edu/stereo/data/scenes2014/zip/Couch-perfect.zip
 wget --no-check-certificate http://vision.middlebury.edu/stereo/data/scenes2014/zip/Flowers-perfect.zip
