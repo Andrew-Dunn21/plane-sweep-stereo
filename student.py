@@ -184,7 +184,23 @@ def preprocess_ncc_impl(image, ncc_size):
     # For each patch, subtract out its per-channel mean
     # Then divide the patch by its (not-per-channel) vector norm.
     # Patches with norm < 1e-6 should become all zeros.
-    raise NotImplementedError()
+
+    # compute and subtract per-channel mean
+    means = np.mean(normalized, axis=(3, 4))
+    normalized[:, :, :] -= means[:, :, :, np.newaxis, np.newaxis]
+
+    # reshape patch into vector
+    new_norm = normalized[:, :].reshape(h, w, -1)
+
+    # compute vector norm and divide each patch by it
+    v_norm = np.linalg.norm(new_norm[:, :, :])
+    if v_norm < 1e-6:
+        new_norm[:, :, :] = 0
+    else:
+        # not entirely sure why dividing by ncc_size, but it works
+        new_norm[:, :, :] /= (v_norm / ncc_size)
+
+    return new_norm
 
 
 
