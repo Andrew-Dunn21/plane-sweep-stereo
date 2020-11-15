@@ -212,4 +212,15 @@ def compute_ncc_impl(image1, image2):
                image2.
     """
 
-    raise NotImplementedError()
+    h, w, p = image1.shape
+
+    # create ncc array
+    ncc = np.zeros((h, w))
+
+    # compute the dot product for each patch and store in ncc array
+    # I'm not sure how to vectorize this right now
+    for i in range(h):
+        for j in range(w):
+            ncc[i, j] = np.dot(image1[i, j], image2[i, j])
+
+    return ncc
