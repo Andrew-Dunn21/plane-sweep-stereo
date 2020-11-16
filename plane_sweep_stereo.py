@@ -54,16 +54,15 @@ right_normalized = preprocess_ncc(right[:, :, :3], ncc_size)
 # normalized, and then compared to the normalized right image.
 volume = []
 for pos, depth in enumerate(depths):
-    raise NotImplementedError()
     # Task 5: complete the plane sweep stereo loop body by filling in
     # the following TODO lines
 
     # (TODO) Unproject the pixel coordinates from the right camera onto the virtual plane.
-    # points = ...
+    points = unproject_corners(K_right, width, height, depth, Rt_right)
 
     # (TODO) Project the 3D corners into the two cameras to generate correspondences.
-    # points_left = ...
-    # points_right = ...
+    points_left = project(K_left, Rt_left, points).reshape((4, 2))
+    points_right = project(K_right, Rt_right, points).reshape((4, 2))
 
     # Solve for a homography to map the left image to the right:
     # Note: points_left and points_right should have shape 4x2
@@ -74,10 +73,13 @@ for pos, depth in enumerate(depths):
     projected_left = cv2.warpPerspective(left, H, (width, height))
 
     # (TODO) Normalize the left image in preparation for NCC
-    # left_normalized = ...
+    left_normalized = preprocess_ncc(projected_left, ncc_size)
 
     # (TODO) Compute the NCC score between the right and left images.
-    # ncc = ...
+    ncc = compute_ncc(right_normalized, left_normalized)
+
+    # append computed ncc to volume - added this so that we didn't get error later when trying to stack values in volume
+    volume.append(ncc)
 
     # generate outputs and report progress:
     # write this slice of the cost volume to a frame of a gif
