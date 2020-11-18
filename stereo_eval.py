@@ -34,7 +34,8 @@ print('files loaded')
 # get calibration information for disparity/depth conversion
 # modified from the dataset.py file provided
 calib_values = {}
-with open('data\Flowers-perfect\calib.txt', 'r') as file:
+calib_file = 'data/{0}-perfect/calib.txt'.format(name)
+with open(calib_file, 'r') as file:
     for line in file:
         name, value = line.strip().split('=')
         calib_values[name] = value
