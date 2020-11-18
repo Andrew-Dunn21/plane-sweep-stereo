@@ -8,8 +8,9 @@ CSCI 497/597
 Program to compute various evaluation metrics on our plane_sweep_stereo output compared to the ground truth
 '''
 
-import imageio
 import sys
+import imageio
+import math
 import numpy as np
 from util import pyrdown
 from dataset import load_dataset
@@ -60,4 +61,14 @@ ground_truth = baseline * f / (ground_truth + doffs)
 print('done converting disparity to depth')
 
 # compute root mean squared error
+N = np.size(ground_truth)
+h, w = ground_truth.shape
+sum = 0
+for y in range(h):
+    for x in range(w):
+       sum += (our_depth[y, x] - ground_truth[y, x])**2
+sum /= N
+R = math.sqrt(sum)
+
+print(R)
 
