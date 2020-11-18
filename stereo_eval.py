@@ -21,8 +21,12 @@ imageio.plugins.freeimage.download()
 data = load_dataset(sys.argv[1])
 
 # load in data files
-our_depth = np.load('output/Flowers_depth.npy')
-ground_truth = imageio.imread('data/Flowers-perfect/disp0.pfm', 'PFM-FI')
+name = sys.argv[1]
+depth_file = 'output/{0}_depth.npy'.format(name)
+gt_file = 'data/{0}-perfect/disp0.pfm'.format(name)
+
+our_depth = np.load(depth_file)
+ground_truth = imageio.imread(gt_file, 'PFM-FI')
 ground_truth = np.asarray(ground_truth)
 
 print('files loaded')
@@ -52,11 +56,12 @@ with open('data\Flowers-perfect\calib.txt', 'r') as file:
 for i in range(data.stereo_downscale_factor):
     ground_truth = pyrdown(ground_truth)
 
-# we have some infinite values so set them to 0
+# we have some infinite values so set them to the max value we find in the ground truth
 ground_truth[ground_truth == float('inf')] = 0
+ground_truth[ground_truth == 0] = np.max(ground_truth)
 
-# convert disparity in ground truth to depth
-ground_truth = baseline * f / (ground_truth + doffs)
+# convert our depths to disparity
+our_depth = (baseline * f) / our_depth
 
 print('done converting disparity to depth')
 
@@ -66,9 +71,21 @@ h, w = ground_truth.shape
 sum = 0
 for y in range(h):
     for x in range(w):
-       sum += (our_depth[y, x] - ground_truth[y, x])**2
+        sum += (our_depth[y, x] - ground_truth[y, x])**2
 sum /= N
 R = math.sqrt(sum)
 
-print(R)
+print("Root Mean Squared Error: " + str(R))
 
+# compute percentage of bad matching pixels
+delta = 1.0 # using what the provided paper used
+
+sum = 0
+for y in range(h):
+    for x in range(w):
+        diff = abs(our_depth[y, x] - ground_truth[y, x])
+        if diff > delta:
+            sum += 1
+B = sum / N
+
+print("Percentage of Bad Matching Pixels: " + str(B))
